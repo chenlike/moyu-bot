@@ -1,0 +1,26 @@
+{
+  "name": "my-vue-app",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "serve": "vite preview"
+  },
+  "dependencies": {
+    "@arco-design/web-vue": "^2.7.0",
+    "axios": "^0.24.0",
+    "qrcode": "^1.5.0",
+    "sass": "^1.43.5",
+    "vue": "^3.2.6",
+    "vue-router": "^4.0.12"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.10",
+    "@types/qrcode": "^1.4.1",
+    "@vitejs/plugin-vue": "^1.6.1",
+    "@vue/compiler-sfc": "^3.2.6",
+    "typescript": "^4.3.2",
+    "vite": "^2.5.4",
+    "vue-tsc": "^0.2.2"
+  }
+}
