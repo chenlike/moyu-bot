@@ -1,0 +1,7 @@
+server: 
+    host: 127.0.0.1
+    port: 5800
+    password: password
+websocket: ws://xxxxxx:8000
+wxid: xxxx
+database: mongodb://user:pass@host:port/name
