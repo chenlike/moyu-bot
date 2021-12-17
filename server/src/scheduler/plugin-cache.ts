@@ -78,7 +78,7 @@ export async function updatePluginCode(pluginId:string):Promise<Result> {
         logger.error("插件不存在");
         return {
             success: false,
-            message: "插件不存在"
+            msg: "插件不存在"
         };
     }
     
@@ -87,7 +87,7 @@ export async function updatePluginCode(pluginId:string):Promise<Result> {
         logger.error("插件实例不存在");
         return {
             success: false,
-            message: "插件实例不存在"
+            msg: "插件实例不存在"
         };
     }
     
@@ -98,13 +98,13 @@ export async function updatePluginCode(pluginId:string):Promise<Result> {
         console.log('更新插件:' + plugin_cache.pluginId)
         return {
             success: true,
-            message: "更新成功"
+            msg: "更新成功"
         }
     }catch(err){
         logger.error(err);
         return {
             success:false,
-            message:"插件更新错误",
+            msg:"插件更新错误",
             data:err
         }
     }

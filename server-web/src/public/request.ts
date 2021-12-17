@@ -11,7 +11,8 @@ instance.interceptors.response.use(
         if (response.data.code) {
             switch (response.data.code) {
                 case 401:
-                    localStorage.removeItem('token')
+                    
+                    break
             }
         }
         return response

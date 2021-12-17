@@ -14,13 +14,13 @@ export async function createPlugin(plugin:IPlugin):Promise<Result>{
     if(plugin.id == ""){
         return {
             success:false,
-            message:"插件id不能为空"
+            msg:"插件id不能为空"
         }
     }
     if(plugin.name == ""){
         return {
             success:false,
-            message:"插件名称不能为空"
+            msg:"插件名称不能为空"
         }
     }
 
@@ -28,7 +28,7 @@ export async function createPlugin(plugin:IPlugin):Promise<Result>{
     if(plugin_exist){
         return {
             success:false,
-            message:"插件id已经存在"
+            msg:"插件id已经存在"
         }
     }
 
@@ -38,7 +38,7 @@ export async function createPlugin(plugin:IPlugin):Promise<Result>{
     schedulerRecvEmitter.emit("syncPlugins")
     return {
         success:true,
-        message:"新增成功"
+        msg:"新增成功"
     }
 }
 
@@ -50,13 +50,13 @@ export async function updatePlugin(plugin:IPlugin):Promise<Result>{
     if(plugin.id == ""){
         return {
             success:false,
-            message:"插件id不能为空"
+            msg:"插件id不能为空"
         }
     }
     if(plugin.name == ""){
         return {
             success:false,
-            message:"插件名称不能为空"
+            msg:"插件名称不能为空"
         }
     }
 
@@ -64,7 +64,7 @@ export async function updatePlugin(plugin:IPlugin):Promise<Result>{
     if(!plugin_exist){
         return {
             success:false,
-            message:"插件不存在"
+            msg:"插件不存在"
         }
     }
 
@@ -74,7 +74,7 @@ export async function updatePlugin(plugin:IPlugin):Promise<Result>{
     schedulerRecvEmitter.emit("updatePlugin",plugin.id)
     return {
         success:true,
-        message:"保存成功"
+        msg:"保存成功"
     }
 }
 

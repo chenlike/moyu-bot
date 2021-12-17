@@ -36,8 +36,8 @@ export default function (app: Express) {
         .status(400)
         .send(<Result>{ success: false, msg: "id不能为空" });
     }
-    let roomId = req.query.roomId as string;
-    res.send(<Result>{ success: true, msg: "获取成功", data: await permissionService.getRoomsPluginsInfo(roomId) });
+    let roomId = req.query.id as string;
+    res.send( await permissionService.getRoomsPluginsInfo(roomId));
   });
 
 

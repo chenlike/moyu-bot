@@ -1,87 +1,75 @@
 <script setup lang="ts">
-import { ref } from "vue"
-import { IconSun, IconSunFill } from '@arco-design/web-vue/es/icon';
-import { useRouter } from "vue-router"
+import { ref, computed } from "vue"
+import { NLayout, NLayoutSider, NMenu } from "naive-ui"
+import { useRoute, useRouter } from "vue-router";
+import { useLogin } from "@/composables/auth"
+import { onMounted } from "vue"
 
+
+
+
+
+const route = useRoute()
 const router = useRouter()
-const darkMode = ref(true)
-
-
-function modeChange() {
-    if (darkMode.value) {
-        // 设置为暗黑主题
-        document.body.setAttribute('arco-theme', 'dark')
-    } else {
-        // 恢复亮色主题
-        document.body.removeAttribute('arco-theme');
+const { checkLogin } = useLogin()
+const activeMenu = computed<string>({
+    get() {
+        return route.path
+    },
+    set(v) {
+        router.push(v)
     }
-}
+})
 
-function toPage(key: string) {
+const menuOption = [
+    {
+        label: '群聊',
+        key: '/room',
+    },
 
-    router.push(`/layout/${key}`)
+    {
+        label: '插件',
+        key: '/plugin',
+    },
+]
 
-}
 
-modeChange()
+onMounted(() => {
+  checkLogin()
+})
+
+
+
 
 
 </script>
 
 <template>
-    <div class="app-layout">
-        <a-layout style="height: 100%;">
-            <a-layout-header style="border-bottom: 1px solid var(--color-border-2);">
-                <div class="header">
-                    <div class="title">摸鱼小助手</div>
-                    <div @click="darkMode = !darkMode; modeChange()" class="darkMode">
-                        <IconSun v-if="darkMode" />
-                        <IconSunFill v-else></IconSunFill>
-                    </div>
-                </div>
-            </a-layout-header>
-            <a-layout>
-                <a-layout-sider>
-                    <a-menu
-                        :style="{ width: '200px', borderRadius: '4px' }"
-                        :default-selected-keys="['wechat']"
-                        router
-                        @menu-item-click="toPage"
-                    >
-                        <a-menu-item key="wechat">微信</a-menu-item>
-                        <a-menu-item key="plugin">插件</a-menu-item>
-                        <a-menu-item key="room">群聊</a-menu-item>
-                    </a-menu>
-                </a-layout-sider>
-                <a-layout-content>
-                    <div class="content">
-                        <router-view></router-view>
-                    </div>
-                </a-layout-content>
-            </a-layout>
-        </a-layout>
-    </div>
+    <n-layout class="app-layout" has-sider>
+        <n-layout-sider>
+            <n-menu
+                v-model:value="activeMenu"
+                :root-indent="36"
+                :indent="12"
+                :options="menuOption"
+            />
+        </n-layout-sider>
+        <n-layout>
+            <div class="view-content">
+                <router-view></router-view>
+            </div>
+   
+        </n-layout>
+    </n-layout>
 </template>
 
 <style lang="scss" scoped>
 .app-layout {
-    width: 100%;
     height: 100%;
-    background-color: var(--color-bg-1);
-    color: var(--color-text-2);
 }
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 50px;
-    margin: 0 20px;
-}
-.darkMode {
-    cursor: pointer;
-    font-size: 20px;
-}
-.content {
-    padding: 15px;
+
+.view-content{
+    height: 199%;
+    overflow: auto;
 }
 </style>

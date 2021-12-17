@@ -27,7 +27,7 @@ export async function setPermission(p: IPermission) {
 
   return <Result>{
     success: true,
-    message: "设置成功",
+    msg: "设置成功",
   };
 }
 
@@ -66,9 +66,6 @@ export interface RoomPluginInfo{
  */
 export async function getRoomsPluginsInfo(room_wxid:string):Promise<Result<RoomPluginInfo[]>>{
     let roomPermissions = await Permission.find({room_wxid:room_wxid})
-    if(roomPermissions == null){
-      return {success:false,message:"群聊信息不存在"}
-    }
 
     let plugins = await getAllPlugins(true)
 

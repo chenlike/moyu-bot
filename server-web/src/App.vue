@@ -1,20 +1,21 @@
 <script lang="ts" setup>
-
-import { onMounted, ref } from '@vue/runtime-core';
-import { Message } from "@arco-design/web-vue"
-import request from "@/public/request"
-import { useRouter } from "vue-router"
-
+import { darkTheme, NConfigProvider, NDialogProvider, NMessageProvider } from "naive-ui"
 
 </script>
 <template>
-  <router-view>
-  </router-view>
+  <n-config-provider class="naive-provider" :theme="darkTheme">
+    <n-message-provider>
+      <n-dialog-provider>
+        <router-view></router-view>
+      </n-dialog-provider>
+    </n-message-provider>
+  </n-config-provider>
 </template>
 <style lang="scss">
 html,
 body,
-#app {
+#app,
+.naive-provider {
   height: 100%;
   margin: 0px;
   padding: 0px;

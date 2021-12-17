@@ -1,5 +1,5 @@
 interface Result<T = any>{
     success:boolean,
-    message?:string
+    msg?:string
     data?:T
 }

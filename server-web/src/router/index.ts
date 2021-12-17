@@ -7,13 +7,22 @@ const router = createRouter({
 
     {
         path:"/",
-        redirect:"/layout/wechat"
+        redirect:"/room"
     },
     {
         path: "/layout",
         name: "layout",
         component: () => import("@/views/Layout.vue"),
         children:[
+            {
+                path:"/room",
+                name:"room",
+                component:()=>import("@/views/Room.vue")
+            },{
+                path:"/plugin",
+                name:"plugin",
+                component:()=>import("@/views/Plugin.vue")
+            }
         ]
     },
 

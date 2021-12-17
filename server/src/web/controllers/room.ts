@@ -9,8 +9,8 @@ export default function(app:Express){
         res.send(<Result>{success:true,msg:"同步成功"})
     })
 
-    app.get("/api/room",auth,(req,res)=>{
-        let rooms = service.getAllChatrooms()
+    app.get("/api/room",auth,async (req,res)=>{
+        let rooms = await service.getAllChatrooms()
         
         res.send(<Result>{success:true,msg:"获取成功",data:rooms})
     })
