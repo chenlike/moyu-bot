@@ -2,24 +2,24 @@ import logger from "@/common/logger";
 import { getAllPlugins, getPlugin } from "@/service/plugin";
 import { IPlugin } from "@/service/schema/plugin.schema";
 import vm from "vm";
-import { MessageInfo,CreateProps } from "./type"
+import { MessageInfo, CreateProps } from "./type"
 export interface PluginInstance {
   /**
    * 触发定时任务
    * @param key 
    */
-  onScheduled(key:string):any
+  onScheduled(key: string): any
   /**
    * 获得消息
    * @param msg 
    */
-  onMessage(msg:MessageInfo):any
+  onMessage(msg: MessageInfo): any
   /**
    * 释放
    */
-  dispose():void
+  dispose(): void
 }
-export type CreatePluginInstanceFunc = (props:CreateProps) => PluginInstance
+export type CreatePluginInstanceFunc = (props: CreateProps) => PluginInstance
 
 export interface PluginCache {
   // 插件id
@@ -58,56 +58,72 @@ export async function syncPlugins() {
         },
       };
 
-      try{
+      try {
 
         vm.runInNewContext(plugin.sourceCode, plugin_cache.context);
-
-      }catch(err){
+        console.log('加载插件:' + plugin_cache.pluginId)
+      } catch (err) {
         logger.error(err);
       }
-      console.log('加载插件:' + plugin_cache.pluginId)
+
       running_plugins.set(plugin.id, plugin_cache);
     }
   }
 }
 
 // 更新插件实例
-export async function updatePluginCode(pluginId:string):Promise<Result> {
-    let plugin = await getPlugin(pluginId);
-    if (!plugin) {
-        logger.error("插件不存在");
-        return {
-            success: false,
-            msg: "插件不存在"
-        };
+export async function updatePluginCode(pluginId: string): Promise<Result> {
+  let plugin = await getPlugin(pluginId);
+  if (!plugin) {
+    logger.error("插件不存在");
+    return {
+      success: false,
+      msg: "插件不存在"
+    };
+  }
+
+  let plugin_cache = running_plugins.get(plugin.id);
+  if (!plugin_cache) {
+    logger.info("新增插件:"+plugin.id);
+    plugin_cache = {
+      pluginId: plugin.id,
+      context: {
+        module: {
+          exports: null,
+        },
+        require,
+        console,
+      }
     }
-    
-    let plugin_cache = running_plugins.get(plugin.id);
-    if (!plugin_cache) {
-        logger.error("插件实例不存在");
-        return {
-            success: false,
-            msg: "插件实例不存在"
-        };
+    running_plugins.set(pluginId, plugin_cache)
+  }
+  // 清空 context
+  plugin_cache.context = {
+    module: {
+      exports: null,
+    },
+    require,
+    console,
+  }
+
+  plugin_cache.context.module.exports = null;
+
+  try {
+    console.log('newcode',plugin.sourceCode)
+    vm.runInNewContext(plugin.sourceCode, plugin_cache.context);
+    logger.info('更新插件:' + plugin_cache.pluginId)
+    return {
+      success: true,
+      msg: "更新成功"
     }
-    
-    plugin_cache.context.module.exports = null;
-    
-    try{
-        vm.runInNewContext(plugin.sourceCode, plugin_cache.context);
-        console.log('更新插件:' + plugin_cache.pluginId)
-        return {
-            success: true,
-            msg: "更新成功"
-        }
-    }catch(err){
-        logger.error(err);
-        return {
-            success:false,
-            msg:"插件更新错误",
-            data:err
-        }
+  } catch (err) {
+    logger.error("更新插件失败:" + err);
+    return {
+      success: false,
+      msg: "插件更新错误",
+      data: err
     }
+  }
 }
 
 /**
@@ -115,12 +131,20 @@ export async function updatePluginCode(pluginId:string):Promise<Result> {
  * @param pluginId 
  * @returns 
  */
-export function getCreatePluginFunc(pluginId:string):CreatePluginInstanceFunc | null{
-    let plugin_cache = running_plugins.get(pluginId);
-    if (!plugin_cache) {
-        return null;
+export async function getCreatePluginFunc(pluginId: string): Promise<CreatePluginInstanceFunc | null> {
+  let plugin_cache = running_plugins.get(pluginId);
+  if (!plugin_cache) {
+
+    logger.info("插件cache不存在:" + pluginId + "尝试进行加载");
+    await syncPlugins();
+    plugin_cache = running_plugins.get(pluginId);
+    if(!plugin_cache){
+      logger.error('尝试加载失败')
+      return null
     }
-    return plugin_cache.context.module.exports;    
+  }
+
+  return plugin_cache.context.module.exports;
 }
 
 /**

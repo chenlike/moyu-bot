@@ -23,6 +23,6 @@ export const Plugin = mongoose.model<IPlugin>(
       unique: true,
     },
     name: String,
-    sourceCode: String,
+    sourceCode: String
   })
 );

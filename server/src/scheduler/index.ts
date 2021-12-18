@@ -1,4 +1,4 @@
-import { ReceiveMsgType, RecvMessage, TextMessage,PictureMessage,EmojiMessage, wechatRecvEmitter } from "@/wechat";
+import { ReceiveMsgType, RecvMessage, TextMessage, PictureMessage, EmojiMessage, wechatRecvEmitter } from "@/wechat";
 import {
   initPluginCache,
   getCreatePluginFunc,
@@ -12,7 +12,7 @@ import { getPermissions } from "@/service/permission";
 import { getChatroomByWxid } from "@/service/chatroom";
 import { schedulerRecvEmitter } from "./emitter";
 import logger from "@/common/logger";
-import {   MessageInfo,MessageInfoType } from "./type";
+import { MessageInfo, MessageInfoType } from "./type";
 import getConfig from "@/common/config";
 import { decodeImage, downloadFile } from "@/common/utils";
 import { registerSchedule } from "./time-schedule";
@@ -85,7 +85,7 @@ async function syncRoomPlugins() {
   }
 }
 
-function getRoomPluginInstance(room_wxid: string, pluginId: string) {
+async function loadRoomPluginInstance(room_wxid: string, pluginId: string) {
   const config = getConfig();
 
   let roomInstance = roomsPlugin.get(room_wxid);
@@ -96,8 +96,11 @@ function getRoomPluginInstance(room_wxid: string, pluginId: string) {
   if (!plugin) {
     return null;
   }
+  if(plugin.instance){
+    return plugin.instance
+  }
 
-  let createFunc = getCreatePluginFunc(plugin.pluginId);
+  let createFunc = await getCreatePluginFunc(plugin.pluginId);
   if (createFunc == null && typeof createFunc != "function") {
     logger.error("获得createFunc 错误");
     return null;
@@ -123,7 +126,7 @@ function getRoomPluginInstance(room_wxid: string, pluginId: string) {
       sendFile(room_wxid, filePath);
     },
     registerSchedule(key: string, rule: string) {
-      registerSchedule(pluginId, key,room_wxid, rule);
+      registerSchedule(pluginId, key, room_wxid, rule);
     },
   });
 
@@ -141,7 +144,7 @@ function handleMessage() {
     throw new Error("wxid 不能为空");
   }
 
-  function executePlugin(msg: RecvMessage) {
+  async function executePlugin(msg: RecvMessage) {
     let roomInstance = roomsPlugin.get(msg.data.room_wxid);
     if (!roomInstance) {
       return;
@@ -174,7 +177,7 @@ function handleMessage() {
         return null;
       },
       savePicture() {
-        if(msg.data.image){
+        if (msg.data.image) {
           return decodeImage(msg.data.image);
         }
         throw new Error("NOT SUPPORT");
@@ -203,7 +206,7 @@ function handleMessage() {
 
     for (let plugin of roomInstance.plugins) {
       try {
-        const instance = getRoomPluginInstance(room_wxid, plugin.pluginId);
+        const instance = await loadRoomPluginInstance(room_wxid, plugin.pluginId);
 
         if (instance == null) {
           continue;
@@ -233,21 +236,21 @@ function handleMessage() {
     executePlugin(msg);
   });
   // 定时任务
-  schedulerRecvEmitter.on("executeSchedule", (pluginId,room_wxid, key) => {
+  schedulerRecvEmitter.on("executeSchedule", async (pluginId, room_wxid, key) => {
     let roomInstance = roomsPlugin.get(room_wxid);
     if (!roomInstance) {
       return
     }
-    try{
-      const instance = getRoomPluginInstance(room_wxid, pluginId);
-      if(instance == null){
+    try {
+      const instance = await loadRoomPluginInstance(room_wxid, pluginId);
+      if (instance == null) {
         return
       }
 
       if (instance.onScheduled && typeof instance.onScheduled == "function") {
         instance.onScheduled(key);
       }
-    }catch(err){
+    } catch (err) {
       logger.error(err)
     }
 
@@ -262,7 +265,11 @@ export async function initScheduler() {
   schedulerRecvEmitter.on("syncRoomPlugins", () => {
     syncRoomPlugins();
   });
-  schedulerRecvEmitter.on("updatePlugin", (id) => {
+  // 更新插件代码
+  schedulerRecvEmitter.on("updatePluginCode", async (id) => {
+
+    await updatePluginCode(id);
+
     // 更新插件实例  先把当前缓存的插件实例 清除
     for (let room_wxid of roomsPlugin.keys()) {
       let roomInstance = roomsPlugin.get(room_wxid);
@@ -274,19 +281,72 @@ export async function initScheduler() {
         continue;
       }
 
-      if(plugin.instance != null){
-        try{
-          if(plugin.instance.dispose && typeof plugin.instance.dispose == "function"){
+      if (plugin.instance != null) {
+        try {
+          if (plugin.instance.dispose && typeof plugin.instance.dispose == "function") {
             plugin.instance.dispose();
           }
-        }catch(err){
+        } catch (err) {
           logger.error(err)
         }
       }
-      plugin.instance = null;
+      plugin.instance = null
+      plugin.instance = await loadRoomPluginInstance(room_wxid, id)!;
     }
-    updatePluginCode(id);
+
   });
+
+  schedulerRecvEmitter.on("updatePluginPermission", async (permission) => {
+
+
+    let room = roomsPlugin.get(permission.room_wxid);
+    if (room == undefined) {
+      await syncRoomPlugins();
+      room = roomsPlugin.get(permission.room_wxid)
+      if (room == undefined) {
+        logger.error("更新插件权限失败，未找到房间")
+        return
+      }
+    }
+    let plugin = room.plugins.find((p) => p.pluginId == permission.plugin_id);
+    if (!plugin) {
+      if (permission.enable) {
+        // 不存在那就新增
+        let pluginInstance = {
+          pluginId: permission.plugin_id,
+          config: permission.config,
+          instance: null,
+        }
+        room.plugins.push(pluginInstance)
+        await loadRoomPluginInstance(permission.room_wxid, permission.plugin_id)
+      }
+
+    } else {
+      if (permission.enable) {
+          // 更新配置
+          plugin.config = permission.config
+          plugin.instance = null
+          await loadRoomPluginInstance(permission.room_wxid, permission.plugin_id)
+      } else {
+        // 清理并删除插件
+        room.plugins.splice(room.plugins.indexOf(plugin), 1);
+        if (plugin.instance != null) {
+          if (plugin.instance.dispose && typeof plugin.instance.dispose == "function") {
+            try {
+              plugin.instance.dispose();
+            } catch (err) {
+              logger.error(err)
+            }
+            plugin.instance = null;
+          }
+        }
+      }
+
+    }
+
+
+  })
+
   schedulerRecvEmitter.on("syncPlugins", () => {
     syncPlugins();
   });
@@ -295,15 +355,6 @@ export async function initScheduler() {
   handleMessage();
 }
 
-/*
-    module.exports = function(msg){
 
-      console.log('inside')
-      if(msg.text == 'plg'){
-        msg.sendText('plgsb')
-      }
-      msg.sendText(msg.type)
-    }
-*/
 
 

@@ -3,11 +3,12 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vite build",
     "serve": "vite preview"
   },
   "dependencies": {
     "axios": "^0.24.0",
+    "monaco-editor": "^0.31.1",
     "naive-ui": "^2.23.0",
     "sass": "^1.43.5",
     "vue": "^3.2.6",

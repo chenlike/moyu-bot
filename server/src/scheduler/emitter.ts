@@ -1,4 +1,5 @@
 
+import { IPermission } from "@/service/schema/permission.schema"
 import EventEmitter from "events"
 import TypedEmitter from "typed-emitter"
 
@@ -9,10 +10,16 @@ export interface SchedulerRecvMessageEvents {
      */
     syncRoomPlugins():void
     /**
-     * 触发更新插件
+     * 触发更新插件 代码
      * @param pluginId 
      */
-    updatePlugin(pluginId:string):void
+    updatePluginCode(pluginId:string):void
+    /**
+     * 更新插件配置信息
+     * @param p 
+     */
+    updatePluginPermission(p:IPermission):void
+
     /**
      * 同步插件
      */

@@ -35,7 +35,7 @@ const menuOption = [
 
 
 onMounted(() => {
-  checkLogin()
+    checkLogin()
 })
 
 
@@ -46,7 +46,7 @@ onMounted(() => {
 
 <template>
     <n-layout class="app-layout" has-sider>
-        <n-layout-sider>
+        <n-layout-sider :width="150" bordered>
             <n-menu
                 v-model:value="activeMenu"
                 :root-indent="36"
@@ -58,7 +58,6 @@ onMounted(() => {
             <div class="view-content">
                 <router-view></router-view>
             </div>
-   
         </n-layout>
     </n-layout>
 </template>
@@ -68,8 +67,8 @@ onMounted(() => {
     height: 100%;
 }
 
-.view-content{
-    height: 199%;
+.view-content {
+    height: 100%;
     overflow: auto;
 }
 </style>

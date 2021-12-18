@@ -23,7 +23,7 @@ export async function setPermission(p: IPermission) {
     }
   );
 
-  schedulerRecvEmitter.emit("syncRoomPlugins");
+  schedulerRecvEmitter.emit("updatePluginPermission",p);
 
   return <Result>{
     success: true,
@@ -46,6 +46,9 @@ export async function getPermissions(enable?: boolean) {
   } else {
     permissions = await Permission.find({});
   }
+
+
+  
 
 
   return permissions;
