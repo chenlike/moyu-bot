@@ -163,6 +163,7 @@ function handleMessage() {
       mention_list: [],
       text: "",
       raw: "",
+      sender_wxid: msg.data.from_wxid,
       async getSenderInfo() {
         if (msg.data.from_wxid) {
           let room = await getChatroomByWxid(room_wxid);

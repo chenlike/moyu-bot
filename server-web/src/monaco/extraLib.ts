@@ -112,6 +112,10 @@ declare module 'moyu'{
          */
         raw: string;
         /**
+         * 发送人 wxid
+         */
+        sender_wxid:string;
+        /**
          * 获得发送人
          */
         getSenderInfo(): Promise<Member | null | undefined>;
