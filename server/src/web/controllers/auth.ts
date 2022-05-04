@@ -8,6 +8,7 @@ export default function(app:Express){
     let password = config.server?.password
     if(!password){
         password = guid()
+        config.server!.password = password;
         console.log("由于没有配置密码，默认使用随机密码:" + password)
     }
     
